@@ -1,0 +1,152 @@
+#include <Wire.h>        // Include Wire library for I2C communication
+#include <Servo.h>       // Include Servo library to control servos
+#include <MPU6050.h>     // Include MPU6050 library to interact with the MPU6050 sensor
+
+MPU6050 mpu;             // Create an MPU6050 object
+Servo servoX;            // Create a Servo object for X-axis
+Servo servoY;            // Create a Servo object for Y-axis
+Servo servoZ;            // Create a Servo object for Z-axis (yaw)
+
+const int potPin = A1;    // Analog pin connected to the potentiometer
+const int ledPin = 9;     // Digital pin connected to the LED
+const int switch_pin = 11; // Digital pin connected to the switch
+int switch_state;         // Variable for switch state
+
+int16_t ax, ay, az;       // Variables to store accelerometer readings
+int16_t gx, gy, gz;       // Variables to store gyroscope readings
+
+float aX = 0, aY = 0, aZ = 0;      // Filtered accelerometer values
+float gyroX = 0, gyroY = 0, gyroZ = 0; // Gyroscope values in degrees per second
+const float alpha = 0.96; // Filter coefficient for accelerometer smoothing
+
+float yaw = 0;            // Variable to store the yaw angle
+unsigned long previousMillis = 0; // Variable to store the previous time
+
+bool usePotentiometer = true;  // Flag to control whether to use potentiometer or MPU6050 data
+
+const int relayPin = 8; // Digital pin connected to the relay
+
+void setup() {
+  Serial.begin(9600);       // Initialize serial communication at 9600 bits per second
+  Wire.begin();             // Initialize I2C communication
+  mpu.initialize();         // Initialize the MPU6050 sensor
+  Serial.println(mpu.testConnection() ? "Connected" : "Connection failed"); // Test connection and print result
+
+  servoX.attach(4); // Attach the X-axis servo to pin 4
+  servoY.attach(5); // Attach the Y-axis servo to pin 5
+  servoZ.attach(6); // Attach the Z-axis servo to pin 6
+
+  pinMode(ledPin, OUTPUT);   // Set LED pin as output
+  pinMode(switch_pin, INPUT); // Set switch pin as input
+
+  // Initialize servos to 90 degrees (neutral position)
+  servoX.write(90);
+  servoY.write(90);
+  servoZ.write(90);
+
+  pinMode(relayPin, OUTPUT); // Set relay pin as output
+}
+
+void controlWithPotentiometer() {
+  unsigned long currentMillis = millis(); // Get the current time in milliseconds
+  float deltaTime = (currentMillis - previousMillis) / 1000.0; // Calculate the time difference in seconds
+  previousMillis = currentMillis; // Update previous time to current time
+
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz); // Read accelerometer and gyroscope data from MPU6050
+
+  // Apply a simple low-pass filter to accelerometer data
+  aX = aX * alpha + (1 - alpha) * ax;
+  aY = aY * alpha + (1 - alpha) * ay;
+  aZ = aZ * alpha + (1 - alpha) * az;
+
+  // Convert raw gyroscope data to degrees per second
+  gyroX = gx / 131.0;
+  gyroY = gy / 131.0;
+  gyroZ = gz / 131.0;
+
+  // Calculate pitch (angleX) and roll (angleY) from filtered accelerometer data
+  float angleX = atan(-1 * (aY / sqrt(aX * aX + aZ * aZ))) * 180 / PI;
+  float angleY = atan(aX / sqrt(aY * aY + aZ * aZ)) * 180 / PI;
+
+  // Map the calculated angles to servo positions (0 to 180 degrees)
+  int servoAngleX = map(angleX, -90, 90, 0, 180); // Map pitch angle to X-axis servo
+  servoX.write(servoAngleX); // Write the mapped value to X-axis servo
+
+  int servoAngleY = map(angleY, -90, 90, 0, 180); // Map roll angle to Y-axis servo
+  servoY.write(servoAngleY); // Write the mapped value to Y-axis servo
+
+  int potValue = analogRead(potPin); // Read the analog value from the potentiometer
+  int servoAngleZ = map(potValue, 0, 1023, 0, 180); // Map potentiometer value to servo angle (0 to 180 degrees)
+  servoZ.write(servoAngleZ); // Write the mapped value to Z-axis servo (yaw)
+
+  // Map potentiometer value to LED brightness (0 to 255)
+  int ledBrightness = map(potValue, 0, 1023, 0, 255);
+  analogWrite(ledPin, ledBrightness); // Set LED brightness
+
+  // Debugging output
+  Serial.print("Potentiometer: ");
+  Serial.print(potValue);
+  Serial.print(" ServoZ Angle: ");
+  Serial.print(servoAngleZ);
+  Serial.print(" LED Brightness: ");
+  Serial.println(ledBrightness);
+}
+
+void controlWithMPU6050() {
+  unsigned long currentMillis = millis(); // Get the current time in milliseconds
+  float deltaTime = (currentMillis - previousMillis) / 1000.0; // Calculate the time difference in seconds
+  previousMillis = currentMillis; // Update previous time to current time
+
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz); // Read accelerometer and gyroscope data from MPU6050
+
+  // Apply a simple low-pass filter to accelerometer data
+  aX = aX * alpha + (1 - alpha) * ax;
+  aY = aY * alpha + (1 - alpha) * ay;
+  aZ = aZ * alpha + (1 - alpha) * az;
+
+  // Convert raw gyroscope data to degrees per second
+  gyroX = gx / 131.0;
+  gyroY = gy / 131.0;
+  gyroZ = gz / 131.0;
+
+  // Calculate pitch (angleX) and roll (angleY) from filtered accelerometer data
+  float angleX = atan(-1 * (aY / sqrt(aX * aX + aZ * aZ))) * 180 / PI;
+  float angleY = atan(aX / sqrt(aY * aY + aZ * aZ)) * 180 / PI;
+
+  // Integrate the gyroscope Z-axis data over time to calculate yaw angle
+  yaw += gyroZ * deltaTime;
+
+  // Normalize yaw angle to stay within the range of -180 to 180 degrees
+  if (yaw > 180) {
+    yaw -= 360;
+  } else if (yaw < -180) {
+    yaw += 360;
+  }
+
+  // Map the calculated angles to servo positions (0 to 180 degrees)
+  int servoAngleX = map(angleX, -90, 90, 0, 180); // Map pitch angle to X-axis servo
+  servoX.write(servoAngleX); // Write the mapped value to X-axis servo
+
+  int servoAngleY = map(angleY, -90, 90, 0, 180); // Map roll angle to Y-axis servo
+  servoY.write(servoAngleY); // Write the mapped value to Y-axis servo
+
+  // Map the calculated yaw angle to servo position (0 to 180 degrees)
+  int servoAngleZ = map(yaw, 90, -90, 0, 180); // Map yaw angle from MPU6050 to servo angle (0 to 180 degrees)
+  servoZ.write(servoAngleZ); // Write the mapped value to Z-axis servo (yaw)
+
+  // Debugging output
+  Serial.print("Yaw: ");
+  Serial.print(yaw);
+  Serial.print(" ServoZ Angle: ");
+  Serial.println(servoAngleZ);
+}
+
+void loop() {
+  switch_state = digitalRead(switch_pin); // Read the state of the switch
+
+   if (switch_state == HIGH) {
+      controlWithPotentiometer();
+    } else {
+      controlWithMPU6050();
+    }
+  }
