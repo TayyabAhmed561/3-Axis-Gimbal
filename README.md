@@ -1,1 +1,23 @@
-The 3-Axis Gimbal project aimed to develop a product that could stabilize a camera or object regardless of how the user moved the device. With multiple servo motors and the MPU6050 sensor, which was used to calibrate and utilize the gyroscope and the accelerometer, the device could provide smooth camera movements along the three axes: pitch, roll, and yaw. The main objective was to counteract any movement, essentially keeping the object fixed in its place. Furthermore, I had also incorporated manual control via a potentiometer, allowing user intervention to adjust the yaw axis as needed. With a switch, you could alternate between automatic and manual mode. Lastly, an LED was integrated to indicate operational status and potentiometer activity, providing immediate feedback on the system's state. 
+🎥 3-Axis Self-Stabilizing Gimbal
+
+This project focuses on building a 3-axis self-stabilizing gimbal capable of keeping a camera or object stabilized regardless of user movement. Using an MPU6050 (gyroscope + accelerometer) and multiple servo motors, the system actively compensates for motion across all three axes—pitch, roll, and yaw—to maintain a steady orientation.
+
+The gimbal supports two operating modes:
+
+Automatic Mode
+
+Real-time stabilization using the MPU6050’s sensor readings
+
+Continuous corrections to counteract unwanted motion
+
+Smooth, accurate balancing across all axes
+
+Manual Mode
+
+User-controlled yaw adjustment via a potentiometer
+
+Enables fine-tuning or creative movement when desired
+
+A dedicated mode switch toggles between automatic and manual control, while an LED indicator provides immediate feedback on system status and potentiometer activity.
+
+This project combines embedded systems, sensor calibration, and control systems engineering to deliver a functional, responsive stabilization platform.
