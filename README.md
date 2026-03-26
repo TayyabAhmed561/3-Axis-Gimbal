@@ -21,3 +21,5 @@ Enables fine-tuning or creative movement when desired
 A dedicated mode switch toggles between automatic and manual control, while an LED indicator provides immediate feedback on system status and potentiometer activity.
 
 This project combines embedded systems, sensor calibration, and control systems engineering to deliver a functional, responsive stabilization platform.
+
+<img width="1080" height="1920" alt="image" src="https://github.com/user-attachments/assets/23930b80-9840-4824-b10d-521103c8d2ba" />
