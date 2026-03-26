@@ -35,13 +35,12 @@ A dedicated **mode switch** toggles between automatic and manual control, while 
 <img width="600" alt="hardware setup" src="https://github.com/user-attachments/assets/23930b80-9840-4824-b10d-521103c8d2ba" />
 
 ### 🧪 Breadboard + MPU6050 Wiring
-<img width="600" alt="wiring" src="/mnt/data/IMG_8180 2.jpeg" />
+
+![IMG_8431 2](https://github.com/user-attachments/assets/c7b1651d-cf20-4e96-88ad-ac86d623eaca)
+
 
 ### 📊 Live Gyroscope Data Output
-<img width="600" alt="serial output" src="/mnt/data/IMG_6399 2.jpg" />
-
-### 🛠️ Full Prototype Assembly
-<img width="600" alt="prototype" src="/mnt/data/IMG_8431 2.jpeg" />
+<img width="1320" height="2352" alt="image" src="https://github.com/user-attachments/assets/92de2ccb-c06e-4875-9332-d0b36d60541e" />
 
 ---
 
